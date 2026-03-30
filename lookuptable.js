@@ -1,3 +1,15 @@
+const MASSIVE_ADS_AFF_ID = "d706de91-f0b2-47a6-8e6d-cafc7eabac01";
+
+const massiveAdsLookup = {
+  "100155131": 9215786,
+  "100724901": 9215785,
+  "100155134": 9215784,
+  "8028929":   9215783,
+  "100242373": 9215782,
+  "100154639": 9215781
+};
+
+
 const lookup = {
   "9275654": 9212646,
   "8439680": 9212679,
@@ -215,29 +227,18 @@ const lookup = {
   
 };
 
-const validDatabowlSsids = {
-  "9215786": true,
-  "9215785": true,
-  "9215784" : true,
-  "9215783" : true,
-  "9215782" : true,
-  "9215781" : true
-
-};   
-// add any raw Databowl ssids that are valid inputs
-
-function getFinalSsid(ssid) {
+function getFinalSsid(ssid, isMassiveAds) {
   if (!ssid) return null;
 
-  if (Object.prototype.hasOwnProperty.call(lookup, ssid)) {
-    return lookup[ssid];
+  if (isMassiveAds) {
+    return Object.prototype.hasOwnProperty.call(massiveAdsLookup, ssid)
+      ? massiveAdsLookup[ssid]
+      : null;
   }
 
-  if (Object.prototype.hasOwnProperty.call(validDatabowlSsids, ssid)) {
-    return ssid;
-  }
-
-  return null;
+  return Object.prototype.hasOwnProperty.call(lookup, ssid)
+    ? lookup[ssid]
+    : null;
 }
 
 $(function () {
@@ -246,14 +247,15 @@ $(function () {
   }
 
   var querySsid = sb.URI.getQueryParameterByName("ssid");
-  if (!querySsid) {
-    return;
-  }
+  if (!querySsid) return;
 
-  var finalSsid = getFinalSsid(String(querySsid));
+  var affId = sb.URI.getQueryParameterByName("affId");
+  var isMassiveAds = affId === MASSIVE_ADS_AFF_ID;
+
+  var finalSsid = getFinalSsid(String(querySsid), isMassiveAds);
 
   if (!finalSsid) {
-    console.warn("Unmapped or invalid ssid for Databowl source:", querySsid);
+    console.warn("Unmapped or invalid ssid:", querySsid, isMassiveAds ? "(Massive Ads)" : "(standard)");
     return;
   }
 
