@@ -215,20 +215,52 @@ const lookup = {
   
 };
 
-function convertSsid(ssid) {
-  return lookup.hasOwnProperty(ssid) ? lookup[ssid] : ssid;
+const validDatabowlSsids = {
+  "9215786": true,
+  "9215785": true,
+  "9215784" : true,
+  "9215783" : true,
+  "9215782" : true,
+  "9215781" : true
+
+};   
+// add any raw Databowl ssids that are valid inputs
+
+function getFinalSsid(ssid) {
+  if (!ssid) return null;
+
+  if (Object.prototype.hasOwnProperty.call(lookup, ssid)) {
+    return lookup[ssid];
+  }
+
+  if (Object.prototype.hasOwnProperty.call(validDatabowlSsids, ssid)) {
+    return ssid;
+  }
+
+  return null;
 }
 
 $(function () {
-  if (typeof sb !== "undefined") {
-    var querySsid = sb.URI.getQueryParameterByName("ssid");
+  if (typeof sb === "undefined" || !sb.URI || typeof sbf === "undefined" || !sbf.forms || !sbf.forms.mainform) {
+    return;
   }
 
-  if (querySsid) {
-    var dbSsid = convertSsid(querySsid);
-    sbf.forms["mainform"].addData({ "ssid": dbSsid });
-    setTimeout(function () {
-      $('input[name="ssid"]').val(dbSsid).trigger("change");
-    }, 2000);
+  var querySsid = sb.URI.getQueryParameterByName("ssid");
+  if (!querySsid) {
+    return;
+  }
+
+  var finalSsid = getFinalSsid(String(querySsid));
+
+  if (!finalSsid) {
+    console.warn("Unmapped or invalid ssid for Databowl source:", querySsid);
+    return;
+  }
+
+  sbf.forms.mainform.addData({ ssid: finalSsid });
+
+  var ssidInput = $('input[name="ssid"]');
+  if (ssidInput.length) {
+    ssidInput.val(finalSsid).trigger("change");
   }
 });
