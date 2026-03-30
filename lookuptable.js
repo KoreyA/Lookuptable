@@ -1,15 +1,3 @@
-const MASSIVE_ADS_AFF_ID = "d706de91-f0b2-47a6-8e6d-cafc7eabac01";
-
-const massiveAdsLookup = {
-  "100155131": 9215786,
-  "100724901": 9215785,
-  "100155134": 9215784,
-  "8028929":   9215783,
-  "100242373": 9215782,
-  "100154639": 9215781
-};
-
-
 const lookup = {
   "9275654": 9212646,
   "8439680": 9212679,
@@ -227,42 +215,20 @@ const lookup = {
   
 };
 
-function getFinalSsid(ssid, isMassiveAds) {
-  if (!ssid) return null;
-
-  if (isMassiveAds) {
-    return Object.prototype.hasOwnProperty.call(massiveAdsLookup, ssid)
-      ? massiveAdsLookup[ssid]
-      : null;
-  }
-
-  return Object.prototype.hasOwnProperty.call(lookup, ssid)
-    ? lookup[ssid]
-    : null;
+function convertSsid(ssid) {
+  return lookup.hasOwnProperty(ssid) ? lookup[ssid] : ssid;
 }
 
 $(function () {
-  if (typeof sb === "undefined" || !sb.URI || typeof sbf === "undefined" || !sbf.forms || !sbf.forms.mainform) {
-    return;
+  if (typeof sb !== "undefined") {
+    var querySsid = sb.URI.getQueryParameterByName("ssid");
   }
 
-  var querySsid = sb.URI.getQueryParameterByName("ssid");
-  if (!querySsid) return;
-
-  var affId = sb.URI.getQueryParameterByName("affId");
-  var isMassiveAds = affId === MASSIVE_ADS_AFF_ID;
-
-  var finalSsid = getFinalSsid(String(querySsid), isMassiveAds);
-
-  if (!finalSsid) {
-    console.warn("Unmapped or invalid ssid:", querySsid, isMassiveAds ? "(Massive Ads)" : "(standard)");
-    return;
-  }
-
-  sbf.forms.mainform.addData({ ssid: finalSsid });
-
-  var ssidInput = $('input[name="ssid"]');
-  if (ssidInput.length) {
-    ssidInput.val(finalSsid).trigger("change");
+  if (querySsid) {
+    var dbSsid = convertSsid(querySsid);
+    sbf.forms["mainform"].addData({ "ssid": dbSsid });
+    setTimeout(function () {
+      $('input[name="ssid"]').val(dbSsid).trigger("change");
+    }, 2000);
   }
 });
